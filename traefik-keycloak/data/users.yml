@@ -1,0 +1,42 @@
+http:
+  middlewares:
+    # Middleware pour ajouter les headers de sécurité nécessaires à Keycloak
+    keycloak-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        frameDeny: true
+
+  routers:
+    # Optionnel : Si vous voulez forcer le HTTPS pour tout le monde
+    global-redirect:
+      rule: "HostRegexp(`{host:.+}`)"
+      entryPoints:
+        - web
+      middlewares:
+        - https-redirect
+      service: noop
+
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/wosa.local.crt
+      keyFile: /etc/traefik/certs/wosa.local.key
+  
+  # Configuration pour accepter vos certificats auto-signés sans erreur
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305

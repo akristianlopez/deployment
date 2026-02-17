@@ -1,0 +1,58 @@
+http:
+  # --- TOUS LES ROUTERS ---
+  routers:
+    keycloak-router:
+      rule: "Host(`auth.wosa.local`)"
+      service: keycloak-service
+      entryPoints:
+        - websecure
+      tls: {}
+
+    consul-ui:
+      rule: "Host(`consul.wosa.local`)"
+      service: consul-service
+      entryPoints:
+        - websecure
+      tls: {}
+
+    traefik-dashboard:
+      rule: "Host(`traefik.wosa.local`)"
+      service: api@internal # Service spécial interne à Traefik
+      entryPoints:
+        - websecure
+      tls: {}
+
+    # AJOUT DU ROUTER POUR NATS
+    nats-router:
+      rule: "Host(`nats.wosa.local`)"
+      service: nats-service
+      entryPoints:
+        - websecure
+      tls: {}
+
+  # --- TOUS LES SERVICES ---
+  services:
+    keycloak-service:
+      loadBalancer:
+        servers:
+          - url: "http://wosa_infra_keycloak:8080"
+
+    consul-service:
+      loadBalancer:
+        servers:
+          - url: "http://wosa_service_mesh_consul-server:8500"
+
+    nats-service:
+      loadBalancer:
+        servers:
+          # Assurez-vous que le nom de la stack est bien wosa_messaging
+          - url: "http://wosa_messaging_nats:8222"
+
+# --- SECTION TLS ---
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+  certificates:
+    - certFile: /etc/traefik/certs/wosa.local.crt
+      keyFile: /etc/traefik/certs/wosa.local.key

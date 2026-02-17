@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  nats:
+    image: nats:latest
+    # Le nom DNS interne sera "wosa_messaging_nats" si la stack s'appelle wosa_messaging
+    networks:
+      - public_net
+    volumes:
+      - ./nats.conf:/etc/nats/nats.conf:ro
+      - ./data:/data/nats
+    command: ["-c", "/etc/nats/nats.conf"]
+    restart: unless-stopped
+    ports:
+      - "4222:4222" # Port client pour votre application Go sur Windows
+      - "8222:8222" # Interface de monitoring (optionnel)
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.nats-mgmt.rule=Host(`nats.wosa.local`)"
+        - "traefik.http.routers.nats-mgmt.entrypoints=websecure"
+        - "traefik.http.routers.nats-mgmt.tls=true"
+        - "traefik.http.services.nats-mgmt.loadbalancer.server.port=8222"
+
+networks:
+  public_net:
+    external: true
+    name: public_net

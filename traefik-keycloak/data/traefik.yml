@@ -1,0 +1,28 @@
+api:
+  dashboard: true
+  insecure: false
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+  consulCatalog:
+    endpoint:
+      address: "wosa_service_mesh_consul-server:8500"
+    exposedByDefault: false
+  # Supprime ou commente le prefix s'il crée un conflit
+  # prefix: "traefik" 
+
+  # Si tu n'utilises pas le KV Store pour le routage Traefik, 
+  # commente cette section pour isoler le problème.
+  # consul:
+  #   endpoints:
+  #     - "wosa_service_mesh_consul-server:8500"
+  #   rootKey: "traefik"
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  knb-shell:
+    image: my-registry.local/knb-shell:latest  # Remplacez par votre nom d'image
+    networks:
+      - wosa_service_mesh    # Pour communiquer avec Consul
+      - public_net      # Pour être accessible par Traefik
+    environment:
+      - PORT=8080
+      - CONSUL_ADDR=wosa_service_mesh_consul-server:8500
+      - CONFIG_PATH=knb/shell/config
+      - SERVICE_NAME=knb-shell
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+    # Note : Pas besoin de labels Traefik ici car le code Go
+    # s'auto-enregistre dans le catalogue Consul avec ses propres tags !
+
+networks:
+  wosa_service_mesh:
+    external: true
+  public_net:
+    external: true

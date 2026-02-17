@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: ingress
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./data/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./certs:/etc/traefik/certs:ro
+    networks:
+      - public_net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    # command: start-dev --http-enabled=true
+    command: start-dev --http-enabled=true --proxy-headers=xforwarded
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db/keycloak
+      KC_DB_USERNAME: keycloak
+      # Utilisez la variable directe au lieu de _FILE pour le test
+      KC_DB_PASSWORD: lopez_admin2026* 
+      KC_HOSTNAME: auth.wosa.local
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+      # Admin credentials
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: lopez_admin2026* #admin_password123      # KC_DB_URL: jdbc:postgresql://keycloak-db/keycloak
+    secrets:
+      - admin_password
+      - db_password
+    volumes:
+      # Format: NOM_DU_VOLUME : CHEMIN_DANS_LE_CONTENEUR
+      - keycloak_data:/var/lib/postgresql/data
+    networks:
+      - public_net
+      - internal_net
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 15s      # On attend 15s (le temps que la DB soit prête) avant de réessayer
+        max_attempts: 5
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.keycloak.rule=Host(`auth.wosa.local`)"
+        - "traefik.http.routers.keycloak.entrypoints=websecure"
+        - "traefik.http.routers.keycloak.tls=true"
+        - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+
+
+  keycloak-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    networks:
+      - internal_net
+    volumes:
+      - keycloak_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  public_net:
+    driver: overlay
+    external: true
+    attachable: true
+  internal_net:
+    driver: overlay
+
+secrets:
+  db_password:
+    external: true
+  admin_password:
+    external: true
+
+volumes:
+  keycloak_data:
