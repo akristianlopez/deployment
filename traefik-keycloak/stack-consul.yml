@@ -27,7 +27,7 @@ services:
         - "traefik.http.routers.consul.entrypoints=websecure" # Ajout de l'entrypoint
         - "traefik.http.routers.consul.tls=true"
         - "traefik.http.services.consul.loadbalancer.server.port=8500"
-
+        - "traefik.http.routers.consul.middlewares=knb-auth@file"
 networks:
   public_net:
     external: true

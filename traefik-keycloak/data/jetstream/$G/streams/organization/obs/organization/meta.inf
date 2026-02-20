@@ -1,0 +1,1 @@
+{"Created":"2026-02-18T08:00:45.736917854Z","Name":"organization","durable_name":"organization","name":"organization","deliver_policy":"all","ack_policy":"explicit","ack_wait":30000000000,"max_deliver":-1,"filter_subject":"acte.*","replay_policy":"instant","max_ack_pending":1000,"deliver_subject":"_INBOX.8k9TMEJxJ30txwzhAFP8Sq","num_replicas":0,"metadata":{"_nats.req.level":"0"}}

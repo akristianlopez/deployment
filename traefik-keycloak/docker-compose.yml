@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: lopez_admin2026*
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
@@ -17,9 +17,9 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: password
+      KC_DB_PASSWORD: lopez_admin2026*
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin_password
+      KC_BOOTSTRAP_ADMIN_PASSWORD: lopez_admin2026*
     ports:
       - "8081:8080" # Accessible sur http://localhost:8081 pour l'admin
     depends_on:

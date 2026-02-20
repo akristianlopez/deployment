@@ -30,6 +30,21 @@ http:
         - websecure
       tls: {}
 
+  # --- TOUS LES MIDDLEWARES ---
+  middlewares:
+    # Ce middleware est utilisé par les microservices pour valider la session Keycloak
+    knb-auth:
+      forwardAuth:
+        # Utilisation du nom DNS complet de Swarm : stack_service
+        address: "http://wosa_infra_forward-auth:4181"
+        # secret: "lopez_admin2026*"
+        authResponseHeaders:
+          - "X-Forwarded-User"
+          - "X-Forwarded-Email"
+          - "X-Forwarded-Groups"
+          - "Authorization"
+        trustForwardHeader: true
+
   # --- TOUS LES SERVICES ---
   services:
     keycloak-service:
@@ -45,7 +60,6 @@ http:
     nats-service:
       loadBalancer:
         servers:
-          # Assurez-vous que le nom de la stack est bien wosa_messaging
           - url: "http://wosa_messaging_nats:8222"
 
 # --- SECTION TLS ---

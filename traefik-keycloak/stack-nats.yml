@@ -20,11 +20,11 @@ services:
         condition: on-failure
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.nats-mgmt.rule=Host(`nats.wosa.local`)"
-        - "traefik.http.routers.nats-mgmt.entrypoints=websecure"
-        - "traefik.http.routers.nats-mgmt.tls=true"
-        - "traefik.http.services.nats-mgmt.loadbalancer.server.port=8222"
-
+        - "traefik.http.routers.nats.rule=Host(`nats.wosa.local`)"
+        - "traefik.http.routers.nats.entrypoints=websecure"
+        - "traefik.http.routers.nats.tls=true"
+        - "traefik.http.services.nats.loadbalancer.server.port=8222"
+        - "traefik.http.routers.nats.middlewares=knb-auth@file"
 networks:
   public_net:
     external: true
