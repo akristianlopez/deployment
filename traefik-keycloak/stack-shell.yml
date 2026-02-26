@@ -10,6 +10,9 @@ services:
     ports:
       - "8080:8080"   # Port de l'application
       - "40000:40000" # Port du débogueur Delve
+    deploy:
+      placement:
+        constraints: [node.role == manager]
     environment:
       - PORT=8080
       - SERVICE_NAME=shell

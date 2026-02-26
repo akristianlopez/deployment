@@ -1,11 +1,20 @@
 http:
-  # --- TOUS LES ROUTERS ---
   routers:
+    # Accès direct à Keycloak pour l'interface d'admin
     keycloak-router:
       rule: "Host(`auth.wosa.local`)"
       service: keycloak-service
       entryPoints:
         - websecure
+      tls: {}
+
+    traefik-dashboard:
+      rule: "Host(`traefik.wosa.local`)"
+      service: api@internal
+      entryPoints: 
+        - websecure
+      middlewares:
+        - oidc-auth-middleware
       tls: {}
 
     consul-ui:
@@ -14,53 +23,57 @@ http:
       entryPoints:
         - websecure
       tls: {}
+      middlewares:
+        - oidc-auth-middleware
 
-    traefik-dashboard:
-      rule: "Host(`traefik.wosa.local`)"
-      service: api@internal # Service spécial interne à Traefik
-      entryPoints:
-        - websecure
-      tls: {}
-
-    # AJOUT DU ROUTER POUR NATS
     nats-router:
       rule: "Host(`nats.wosa.local`)"
       service: nats-service
       entryPoints:
         - websecure
       tls: {}
+      middlewares:
+        - oidc-auth-middleware
 
-  # --- TOUS LES MIDDLEWARES ---
+
   middlewares:
-    # Ce middleware est utilisé par les microservices pour valider la session Keycloak
-    knb-auth:
-      forwardAuth:
-        # Utilisation du nom DNS complet de Swarm : stack_service
-        address: "http://wosa_infra_forward-auth:4181"
-        # secret: "lopez_admin2026*"
-        authResponseHeaders:
-          - "X-Forwarded-User"
-          - "X-Forwarded-Email"
-          - "X-Forwarded-Groups"
-          - "Authorization"
-        trustForwardHeader: true
+    oidc-auth-middleware:
+      plugin:
+        oidc: # Le nom doit correspondre à celui dans traefik.yml
+          # Bloc Provider : MAJUSCULES OBLIGATOIRES
+          Provider:
+            Url: 'http://keycloak:8080/realms/knb-cloud'
+            ClientId: 'knb-client'
+            ClientSecret: 'Wq43hJSO60mtHQ47GjHJeg9ZXktlJZPT'
+            InsecureSkipVerify: true
 
-  # --- TOUS LES SERVICES ---
+          # Configuration de redirection
+          # RedirectUrl: 'https://app.wosa.local/'
+          # RedirectUrl: 'https://traefik.wosa.local/oidc/callback'
+          
+          # Secret : Chaîne de 32 caractères pour sécuriser les cookies de session
+          Secret: 'VhkZTRZEmSeGbeZnInDokck1aO2r_hvf'
+          
+          # Options additionnelles (respectez les majuscules)
+          CookieName: 'wosa-session'
+          InsecureSkipVerify: true
+          Scopes: ["openid", "profile", "email"]
+
   services:
     keycloak-service:
       loadBalancer:
         servers:
-          - url: "http://wosa_infra_keycloak:8080"
+          - url: "http://keycloak:8080"
 
     consul-service:
       loadBalancer:
         servers:
-          - url: "http://wosa_service_mesh_consul-server:8500"
+          - url: "http://consul:8500"
 
     nats-service:
       loadBalancer:
         servers:
-          - url: "http://wosa_messaging_nats:8222"
+          - url: "http://nats:8222"
 
 # --- SECTION TLS ---
 tls:

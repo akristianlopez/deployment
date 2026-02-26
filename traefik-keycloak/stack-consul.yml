@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  consul-server:
+  consul:
     image: hashicorp/consul:latest
     networks:
       - public_net
@@ -11,23 +11,32 @@ services:
         protocol: tcp
         mode: ingress    
     # command: "agent -server -bootstrap-expect=1 -ui -client=0.0.0.0 -bind=0.0.0.0"
-    command: "agent -server -bootstrap-expect=1 -ui -client=0.0.0.0 -bind=0.0.0.0 -advertise='{{ GetInterfaceIP \"eth0\" }}'"
+    command: "agent -server -bootstrap-expect=1 -ui -client=0.0.0.0 -bind=0.0.0.0 -advertise='{{ GetInterfaceIP \"eth0\" }}' -hcl='performance { raft_multiplier = 5 }'"
+    # command: "agent -server -bootstrap-expect=1 -ui -client=0.0.0.0 -bind=0.0.0.0 -advertise='{{ GetInterfaceIP \"eth0\" }}'"
     volumes:
       - consul_data:/consul/data
     environment:
       - CONSUL_LOCAL_CONFIG={"skip_leave_on_interrupt":true}
     deploy:
+      # resources:
+      #   limits:
+      #     memory: 512M
+      #     cpus: '0.50'
+      # reservations:
+      #   cpus: '0.25'
+      #   memory: 256M
       restart_policy:
         condition: on-failure
-      placement:
-        constraints: [node.role == manager]
+      # placement:
+      #   constraints: [node.role == manager]
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.consul.rule=Host(`consul.wosa.local`)"
         - "traefik.http.routers.consul.entrypoints=websecure" # Ajout de l'entrypoint
         - "traefik.http.routers.consul.tls=true"
-        - "traefik.http.services.consul.loadbalancer.server.port=8500"
-        - "traefik.http.routers.consul.middlewares=knb-auth@file"
+        # - "traefik.http.services.consul.loadbalancer.server.port=8500"
+        # - "traefik.http.routers.consul.middlewares=oidc-auth-middleware@file"
+
 networks:
   public_net:
     external: true
