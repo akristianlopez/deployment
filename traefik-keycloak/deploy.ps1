@@ -1,7 +1,7 @@
 Write-Output "--- Nettoyage de l'environnement ---"
 # Suppression des stacks existantes
 Write-Output "--- Nettoyage des Stacks ---"
-docker stack rm wosa_infra wosa_service_mesh wosa_messaging wosa_shell wosa_auth
+docker stack rm wosa_infra wosa_service_mesh wosa_messaging wosa_shell wosa_auth wosa_secret
 
 Write-Output "Attente de la suppression complète des conteneurs..."
 # Boucle pour attendre que les conteneurs libèrent le réseau
@@ -47,8 +47,8 @@ Write-Output $ADMIN_PWD | docker secret create admin_password -
 # --- DÉPLOIEMENT ---
 # Déploiement de la Gateway (Traefik + Keycloak)
 docker stack deploy -c stack-gateway.yml wosa_infra
-Write-Output "Attente de la libération des ressources (30s)..."
-Start-Sleep 30
+Write-Output "Attente de la libération des ressources (40s)..."
+Start-Sleep 35
 
 # docker stack deploy -c stack-forward-auth.yml wosa_auth
 # Write-Output "Attente de la libération des ressources (15s)..."
@@ -56,13 +56,18 @@ Start-Sleep 30
 
 # Déploiement de Consul
 docker stack deploy -c stack-consul.yml wosa_service_mesh
-Write-Output "Attente de la libération des ressources (15s)..."
+Write-Output "Attente de la libération des ressources (20s)..."
 Start-Sleep 20
 
 # Déploiement de Nats
 docker stack deploy -c stack-nats.yml wosa_messaging
 Write-Output "Attente de la libération des ressources (10s)..."
 
+
+# Déploiement de vault
 # Start-Sleep 10
+# docker stack deploy -c stack-infisical.yml wosa_secret
+
+# Start-Sleep 20
 # Déploiement de knb-shell
 # docker stack deploy -c stack-knb-shell.yml wosa_shell

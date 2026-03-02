@@ -1,0 +1,45 @@
+services:
+  vault:
+    image: hashicorp/vault:latest
+    networks:
+      - public_net
+    environment:
+      SKIP_CHOWN: "true"
+      SKIP_SETCAP: "true"
+      disable_mlock: "true"
+      VAULT_API_ADDR: "http://vault:8200"
+    volumes:
+      - vault_data:/vault/file
+      - vault_logs:/vault/logs
+    cap_add:
+      - IPC_LOCK
+    # Version simplifiée sans échappement complexe
+    # command: ["server", "-config=/vault/config/vault-config.hcl"]
+    command: server -config=/vault/config/vault-config.hcl
+    configs:
+      - source: vault_hcl_config
+        target: /vault/config/vault-config.hcl
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.vault.rule=Host(`vault.wosa.local`)"
+        - "traefik.http.routers.vault.entrypoints=websecure"
+        - "traefik.http.routers.vault.tls=true"
+        # - "traefik.http.routers.vault.middlewares=oidc-auth-middleware@file"
+        # - "traefik.http.services.vault.loadbalancer.server.port=8200"
+
+configs:
+  vault_hcl_config:
+    file: ./vault-config.hcl
+
+networks:
+  public_net:
+    external: true
+    name: public_net
+
+volumes:
+  vault_data:
+  vault_logs:

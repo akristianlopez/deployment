@@ -35,7 +35,6 @@ http:
       middlewares:
         - oidc-auth-middleware
 
-
   middlewares:
     oidc-auth-middleware:
       plugin:
@@ -46,7 +45,7 @@ http:
             ClientId: 'knb-client'
             ClientSecret: 'Wq43hJSO60mtHQ47GjHJeg9ZXktlJZPT'
             InsecureSkipVerify: true
-
+            UsePkce: true
           # Configuration de redirection
           # RedirectUrl: 'https://app.wosa.local/'
           # RedirectUrl: 'https://traefik.wosa.local/oidc/callback'
@@ -55,6 +54,7 @@ http:
           Secret: 'VhkZTRZEmSeGbeZnInDokck1aO2r_hvf'
           
           # Options additionnelles (respectez les majuscules)
+          AuthHeader: "Authorization"
           CookieName: 'wosa-session'
           InsecureSkipVerify: true
           Scopes: ["openid", "profile", "email"]
@@ -81,5 +81,5 @@ tls:
     default:
       minVersion: VersionTLS12
   certificates:
-    - certFile: /etc/traefik/certs/wosa.local.crt
-      keyFile: /etc/traefik/certs/wosa.local.key
+    - certFile: /etc/traefik/certs/wosa.crt
+      keyFile: /etc/traefik/certs/wosa.key

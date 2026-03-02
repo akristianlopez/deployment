@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  infisical-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: infisical
+      POSTGRES_PASSWORD: lopez_admin2026*
+      POSTGRES_DB: infisical
+    networks:
+      - wosa_internal
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  infisical-redis:
+    image: redis:7-alpine
+    networks:
+      - wosa_internal
+
+  infisical:
+    image: infisical/infisical:latest
+    environment:
+      - NODE_ENV=production
+      - SITE_URL=https://vault.wosa.local
+      - DB_CONNECTION_URI=postgresql://infisical:lopez_admin2026%2A@infisical-db:5432/infisical
+      - REDIS_URL=redis://infisical-redis:6379
+      
+      # CLÉS HEXADÉCIMALES (STRICTEMENT 64 CARACTÈRES / 32 OCTETS)
+      - ENCRYPTION_KEY='eb70546990424558e0a7990666014e357906d2038e2392762e7428414b434444'
+      - ROOT_ENCRYPTION_KEY='717466657930414d423143324433453446353637383930414243444546474849'
+      
+      # DOUBLONS POUR LA COMPATIBILITÉ DES MIGRATIONS KMS
+      - INFISICAL_ENCRYPTION_KEY='eb70546990424558e0a7990666014e357906d2038e2392762e7428414b434444'
+      - INFISICAL_ROOT_KEY='717466657930414d423143324433453446353637383930414243444546474849'
+      
+      # SECRET POUR L'AUTHENTIFICATION DES SESSIONS
+      - AUTH_SECRET='221575856461413142324333443445354636373839304142434445464748494a'
+
+    networks:
+      - wosa_internal
+      - public_net
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.infisical.rule=Host(`vault.wosa.local`)"
+        - "traefik.http.routers.infisical.entrypoints=websecure"
+        - "traefik.http.routers.infisical.tls=true"
+        - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+
+networks:
+  wosa_internal:
+    driver: overlay
+  public_net:
+    external: true
+    name: public_net
+
+secrets:
+  db_password:
+    external: true
+  admin_password:
+    external: true
+
+volumes:
+  infisical_app_data:
+  infisical_db_data:
+  

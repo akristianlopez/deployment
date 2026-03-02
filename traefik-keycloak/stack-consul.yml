@@ -27,8 +27,8 @@ services:
       #   memory: 256M
       restart_policy:
         condition: on-failure
-      # placement:
-      #   constraints: [node.role == manager]
+      placement:
+        constraints: [node.role == manager]
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.consul.rule=Host(`consul.wosa.local`)"
