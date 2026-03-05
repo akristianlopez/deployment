@@ -13,11 +13,15 @@ providers:
     exposedByDefault: false
 
 # Activation du plugin OIDC
+# experimental:
+#   plugins:
+#     oidc:
+#       moduleName: "github.com/sevensolutions/traefik-oidc-auth"
+#       version: "v0.18.0" 
 experimental:
-  plugins:
+  localPlugins:
     oidc:
-      moduleName: "github.com/sevensolutions/traefik-oidc-auth"
-      version: "v0.18.0" 
+      moduleName: github.com/sevensolutions/traefik-oidc-auth
 
 entryPoints:
   web:

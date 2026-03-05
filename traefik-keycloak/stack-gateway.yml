@@ -20,6 +20,8 @@ services:
       - ./data/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./data/dynamic.yml:/etc/traefik/dynamic.yml:ro
       - ./certs:/etc/traefik/certs:ro
+      - ./plugins-local:/plugins-local # Montage du dossier local
+      # - TRAEFIK_PLUGINS_TIMEOUT=300s
     networks:
       - public_net
 
